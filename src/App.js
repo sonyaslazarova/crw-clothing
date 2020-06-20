@@ -1,42 +1,54 @@
 import React from 'react';
-import {Switch, Route} from 'react-router-dom';
+import { Switch, Route } from 'react-router-dom';
+
 import './App.css';
-import HomePage from './pages/homepage/homepage.component.jsx';
-import ShopPage from './pages/shop/shop.component.jsx';
-import Header from './components/header/header.component.jsx';
-import SignInSignOutPage from './pages/sign-in-sign-out/sign-in-sign-out.component.jsx';
-import './pages/homepage/homepage.style.scss';
-import { auth } from './firebase/firebase.util';
+
+import HomePage from './pages/homepage/homepage.component';
+import ShopPage from './pages/shop/shop.component';
+import SignInAndSignUpPage from './pages/sign-in-and-sign-up/sign-in-and-sign-up.component';
+import Header from './components/header/header.component';
+import { auth, createUserProfileDocument } from './firebase/firebase.utils';
 
 class App extends React.Component {
-  constructor(){
+  constructor() {
     super();
-    
+
     this.state = {
       currentUser: null
-    }
+    };
   }
 
-  unsubstcribeFromAuth = null;
+  unsubscribeFromAuth = null;
 
-  componentDidMount(){
-    this.unsubstcribeFromAuth = auth.onAuthStateChanged(user => {
-      this.setState({ currentUser: user })
-    })
+  componentDidMount() {
+    this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
+      if (userAuth){
+        const userRef = createUserProfileDocument(userAuth);
+
+        (await userRef).onSnapshot(snapShot => {
+          this.setState({
+            currentUser: {
+              id: snapShot.id,
+              ...snapShot.data()
+            }
+          })
+        });
+      }
+    });
   }
 
-  componentWillUnmount(){
-    this.unsubstcribeFromAuth();
+  componentWillUnmount() {
+    this.unsubscribeFromAuth();
   }
 
-  render(){
+  render() {
     return (
       <div>
-      <Header></Header>
+        <Header currentUser={this.state.currentUser} />
         <Switch>
           <Route exact path='/' component={HomePage} />
-          <Route exact path='/shop' component={ShopPage} />
-          <Route exact path='/signin' component={SignInSignOutPage} />
+          <Route path='/shop' component={ShopPage} />
+          <Route path='/signin' component={SignInAndSignUpPage} />
         </Switch>
       </div>
     );
