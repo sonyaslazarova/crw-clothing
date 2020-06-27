@@ -25,6 +25,8 @@ const CollectionItem = ({ item, addItem }) => {
   );
 };
 
+// addindvghbjkdsfjdsklfldms
+
 const mapDispatchToProps = (dispatch) => ({
   addItem: (item) => dispatch(addItem(item)),
 });
